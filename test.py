@@ -206,7 +206,7 @@ while running:
                     print("left mouse button at(%d, %d)" % event.pos)
                     # if guess_code[player_turn] == ['grey', 'grey', 'grey', 'grey']:
                     #     break
-                set_players_guess(x_pos, selected_color, player_turn)
+                    set_players_guess(x_pos, selected_color, player_turn)
                 # check if check button is pressed
                 if 90 <= x_pos <= 240 and 710 <= y_pos <= 760:
                     player_turn += 1
