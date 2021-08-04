@@ -6,19 +6,23 @@ using pygame in python
 
 import pygame
 import random
+import sys
+
+# import numpy as np
 
 pygame.init()  # Needed to start pygame module
 
 screenWidth = 600  # Setting up the screen size
 screenHeight = 800  # Setting up the screen size
-player_turn = 1  # Keeps up with what turn the player is on
-selected_color = 'grey'  # variable to keep track of the color player is using
+player_turn = 0  # Keeps up with what turn the player is on
+selected_color = 'red'  # variable to keep track of the color player is using
+fps = 30
 
 # used to keep track of where the mouse is pointing
-xmin = 80
-xmax = 120
-ymin = 80
-ymax = 120
+x_min = 80
+x_max = 120
+y_min = 80
+y_max = 120
 
 # Defining the colors in RGB
 red = (255, 0, 0)
@@ -28,10 +32,11 @@ yellow = (255, 255, 0)
 white = (255, 255, 255)
 black = (0, 0, 0)
 grey = (120, 120, 120)
-
+orange = (235, 149, 52)
 
 code = []  # the list the player is trying to solve
-guess_code = ['grey', 'grey', 'grey', 'grey']  # Stores the code the player guesses
+# guess_code = [['grey' for y in range(4)]  # populates guess code to 40 greys
+#               for x in range(10)]
 
 # name of the colors in the game
 colorList = ['red', 'green', 'blue', 'yellow', 'white', 'black']
@@ -40,34 +45,10 @@ colorList = ['red', 'green', 'blue', 'yellow', 'white', 'black']
 screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption('MasterMind')
 
-
-def set_code():
-    code.clear()
-    for i in range(4):
-        code.append(random.choice(colorList))
-    print(code)
+'''----------------------------- BEGIN SCREEN SET-UP ----------------------------------------'''
 
 
-def set_players_guess(xpos, selection):
-    print('the x position ', xpos)
-    if 80 <= xpos <= 120:
-        guess_code[0] = selection
-        print(guess_code[0], ' first spot')
-    if 140 <= xpos <= 180:
-        guess_code[1] = selection
-        print(guess_code[1], ' second spot')
-    if 200 <= xpos <= 240:
-        guess_code[2] = selection
-        print(guess_code[2], ' third spot')
-    if 260 <= xpos <= 300:
-        guess_code[3] = selection
-        print(guess_code[3], ' fourth spot')
-
-
-def draw_screen(color):
-
-    screen.fill(black)
-
+def set_playfield():
     # used to set up the spots in the game board
     rows = 40
     columns = 100
@@ -79,47 +60,128 @@ def draw_screen(color):
             columns += 60
             rows = 40
 
+
+def set_selection_gui(color):
     # sets up the side selection colors
-    center_select_col = 105
-    select_col = 100
+    y_cor = 100
     for z in range(6):
-        pygame.draw.rect(screen, grey, [450, select_col, 40, 40])
-        pygame.draw.rect(screen, colorList[z], [455, center_select_col, 30, 30])
-        center_select_col += 80
-        select_col += 80
+        pygame.draw.rect(screen, grey, [450, y_cor, 40, 40])
+        pygame.draw.rect(screen, colorList[z], [455, (y_cor + 5), 30, 30])
+        y_cor += 80
 
-    # shows rhe players selected color in the top right corner.
-    pygame.draw.circle(screen, grey, (470, 40), 20)
-    pygame.draw.circle(screen, color, (470, 40), 15)
+    pygame.draw.circle(screen, grey, (540, 40), 20)
+    pygame.draw.circle(screen, color, (540, 40), 15)
 
+
+def set_color_in_grid():
     # places the guess colors in the correct spots
     x_cord = 100
     y_cord = 100
-    for x in range(4):
-        pygame.draw.circle(screen, guess_code[x], (x_cord, y_cord), 15)
-        x_cord += 60
+    for x in range(10):
+        for y in range(4):
+            pygame.draw.circle(screen, guess_code[x][y], (x_cord, y_cord), 15)
+            x_cord += 60
+            if y % 4 == 3:
+                y_cord += 60
+                x_cord = 100
+
+
+def draw_buttons():
+    pygame.draw.rect(screen, orange, (90, 710, 150, 50))
+    pygame.draw.rect(screen, orange, (340, 710, 150, 50))
+
+
+def draw_font():
+    # font for the game title
+    check_font = pygame.font.SysFont('inkfree', 45, bold=True)
+    check_text = check_font.render('MasterMind', True, (42, 245, 48))
+    screen.blit(check_text, (44, 14))
+
+    # font for the check button
+    check_font = pygame.font.SysFont('inkfree', 25, bold=True)
+    check_text = check_font.render('CHECK', True, red)
+    screen.blit(check_text, (124, 718))
+
+    # font for the restart button
+    start_font = pygame.font.SysFont('inkfree', 25, bold=True)
+    start_text = start_font.render('RESTART', True, red)
+    screen.blit(start_text, (350, 718))
+
+    selection_font = pygame.font.SysFont('inkfree', 20, bold=True)
+    selection_text = selection_font.render('SELECTION', True, red)
+    screen.blit(selection_text, (380, 28))
+
+
+def draw_screen(color):
+    screen.fill(black)
+
+    set_playfield()
+    set_selection_gui(color)
+    set_color_in_grid()
+    draw_buttons()
+    draw_font()
+
+
+'''----------------------------- END of SCREEN SET-UP ----------------------------------------'''
+
+
+def set_players_guess(x_cord, selection, turn):
+    if 80 <= x_cord <= 120:
+        guess_code[turn][0] = selection
+    if 140 <= x_cord <= 180:
+        guess_code[turn][1] = selection
+    if 200 <= x_cord <= 240:
+        guess_code[turn][2] = selection
+    if 260 <= x_cord <= 300:
+        guess_code[turn][3] = selection
+    print(player_turn, guess_code)
+
+
+def set_code():
+    code.clear()
+    for i in range(4):
+        code.append(random.choice(colorList[0:6]))
+    print(code)
 
 
 def show_code():
-
     # used to place the code in the spots
-    peg_rows = 40
-    peg_column = 20
+    row = 310
+    column = 640
 
     for a in range(4):
-        peg_rows += 60
-        pygame.draw.circle(screen, code[a], (peg_rows, peg_column), 15)
+        row += 60
+        pygame.draw.circle(screen, code[a], (row, column), 15)
 
 
-set_code()  # Sets color code to begin the first turn
+def check_guess(turn):
+    if code == guess_code[turn]:
+        print('got it!')
+    else:
+        print("don't got it!")
+
+
+def restart():
+    global guess_code
+    set_code()
+    guess_code = [['grey' for y in range(4)]  # populates guess code to 40 greys
+                  for x in range(10)]
+    return 0
+
+
+restart()  # sets-up the game for the first run
 
 # game loop
 running = True
 while running:
 
+    # sets the frames per second
+    clock = pygame.time.Clock()
+    clock.tick(fps)
+
     # Variable to capture mouse coordinates during a mouse click
-    xPos = pygame.mouse.get_pos()[0]
-    yPos = pygame.mouse.get_pos()[1]
+    x_pos = pygame.mouse.get_pos()[0]
+    y_pos = pygame.mouse.get_pos()[1]
 
     # calls the draw screen function
     draw_screen(selected_color)
@@ -132,35 +194,45 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_n:
                 set_code()
-            elif event.key == pygame.K_c:
-                print("checking code")
-                ymin += 60
-                ymax += 60
-                yPos += 60
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # Check the area where the mouse was clicked
             if event.button == 1:
 
                 # Is the left click at one of the four playing spots
-                if (xmin <= xPos <= xmax or (xmin + 60) <= xPos <= (xmax + 60)
-                        or (xmin + 120) <= xPos <= (xmax + 120) or (xmin + 180) <= xPos <= (xmax + 180)) \
-                        and ymin <= yPos <= ymax:
+                if (x_min <= x_pos <= x_max or (x_min + 60) <= x_pos <= (x_max + 60)
+                    or (x_min + 120) <= x_pos <= (x_max + 120) or (x_min + 180) <= x_pos <= (x_max + 180)) \
+                        and y_min <= y_pos <= y_max:
                     print("left mouse button at(%d, %d)" % event.pos)
-                    set_players_guess(xPos, selected_color)
+                    # if guess_code[player_turn] == ['grey', 'grey', 'grey', 'grey']:
+                    #     break
+                set_players_guess(x_pos, selected_color, player_turn)
+                # check if check button is pressed
+                if 90 <= x_pos <= 240 and 710 <= y_pos <= 760:
+                    player_turn += 1
+                    check_guess(player_turn - 1)
+                    y_min += 60
+                    y_max += 60
+                    y_pos += 60
+
+                # check if restart button is pressed
+                if 340 <= x_pos <= 490 and 710 <= y_pos <= 760:
+                    player_turn = restart()
+          
+                tester = (450 <= x_pos <= 490)
 
                 # Is the left click on one of the side selectors
-                if 450 <= xPos <= 490 and 100 <= yPos <= 140:
+                if tester and 100 <= y_pos <= 140:
                     selected_color = 'red'
-                if 450 <= xPos <= 490 and 180 <= yPos <= 220:
+                if 450 <= x_pos <= 490 and 180 <= y_pos <= 220:
                     selected_color = 'green'
-                if 450 <= xPos <= 490 and 260 <= yPos <= 300:
+                if 450 <= x_pos <= 490 and 260 <= y_pos <= 300:
                     selected_color = 'blue'
-                if 450 <= xPos <= 490 and 340 <= yPos <= 380:
+                if 450 <= x_pos <= 490 and 340 <= y_pos <= 380:
                     selected_color = 'yellow'
-                if 450 <= xPos <= 490 and 420 <= yPos <= 460:
+                if 450 <= x_pos <= 490 and 420 <= y_pos <= 460:
                     selected_color = 'white'
-                if 450 <= xPos <= 490 and 500 <= yPos <= 540:
+                if 450 <= x_pos <= 490 and 500 <= y_pos <= 540:
                     selected_color = 'black'
                 print(selected_color)
 
