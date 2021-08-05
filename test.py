@@ -6,7 +6,6 @@ using pygame in python
 
 import pygame
 import random
-import sys
 
 # import numpy as np
 
@@ -59,6 +58,8 @@ def set_playfield():
         if i % 4 == 3:
             columns += 60
             rows = 40
+    for x in range(40):
+        pass
 
 
 def set_selection_gui(color):
@@ -154,11 +155,33 @@ def show_code():
         pygame.draw.circle(screen, code[a], (row, column), 15)
 
 
-def check_guess(turn):
-    if code == guess_code[turn]:
-        print('got it!')
-    else:
-        print("don't got it!")
+def check_guess(guess, cde):
+    guess_cpy = guess.copy()
+    code_cpy = cde.copy()
+    white_peg = 0
+    black_peg = 0
+    ''' This for loop is used to make the code_cpy list longer so I 
+        stop getting an error on the next for loop on the
+         second iteration. '''
+    for y in range(3):
+        code_cpy.append('pink')
+
+    for i in range(4):
+        for x in range(4):
+            if guess_cpy[i] == code_cpy[x]:
+                white_peg += 1
+                code_cpy.remove(guess_cpy[i])
+    print(white_peg, black_peg)
+
+    guess_cpy = guess.copy()
+    code_cpy = cde.copy()
+
+    for x in range(4):
+        if guess_cpy[x] == code_cpy[x]:
+            black_peg += 1
+            white_peg -= 1
+
+    print(guess_cpy, code_cpy, white_peg, black_peg)
 
 
 def restart():
@@ -207,18 +230,19 @@ while running:
                     # if guess_code[player_turn] == ['grey', 'grey', 'grey', 'grey']:
                     #     break
                     set_players_guess(x_pos, selected_color, player_turn)
+
                 # check if check button is pressed
                 if 90 <= x_pos <= 240 and 710 <= y_pos <= 760:
                     player_turn += 1
-                    check_guess(player_turn - 1)
+                    check_guess(guess_code[player_turn - 1], code)
                     y_min += 60
                     y_max += 60
-                    y_pos += 60
 
                 # check if restart button is pressed
                 if 340 <= x_pos <= 490 and 710 <= y_pos <= 760:
                     player_turn = restart()
-          
+                    y_min = 80
+                    y_max = 120
                 tester = (450 <= x_pos <= 490)
 
                 # Is the left click on one of the side selectors
@@ -234,10 +258,11 @@ while running:
                     selected_color = 'white'
                 if 450 <= x_pos <= 490 and 500 <= y_pos <= 540:
                     selected_color = 'black'
-                print(selected_color)
+                # print(selected_color)
 
     pygame.display.update()
 
 pygame.quit()
+
 
 
