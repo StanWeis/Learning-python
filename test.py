@@ -16,6 +16,9 @@ screenHeight = 800  # Setting up the screen size
 player_turn = 0  # Keeps up with what turn the player is on
 selected_color = 'red'  # variable to keep track of the color player is using
 fps = 30
+black_peg = 0  # Keep track of right color and position
+white_peg = 0  # keep track of right color wrong position
+pegs = []
 
 # used to keep track of where the mouse is pointing
 x_min = 80
@@ -31,6 +34,7 @@ yellow = (255, 255, 0)
 white = (255, 255, 255)
 black = (0, 0, 0)
 grey = (120, 120, 120)
+dk_grey = (40, 40, 40)
 orange = (235, 149, 52)
 
 code = []  # the list the player is trying to solve
@@ -58,8 +62,16 @@ def set_playfield():
         if i % 4 == 3:
             columns += 60
             rows = 40
+
+    rows = 300
+    columns = 85
+
     for x in range(40):
-        pass
+        rows += 30
+        pygame.draw.circle(screen, grey, (rows, columns), 10)
+        if x % 2 == 1:
+            columns += 30
+            rows = 300
 
 
 def set_selection_gui(color):
@@ -85,6 +97,16 @@ def set_color_in_grid():
             if y % 4 == 3:
                 y_cord += 60
                 x_cord = 100
+
+    x_cord = 330
+    y_cord = 85
+    for x in range(10):
+        for y in range(4):
+            pygame.draw.circle(screen, answer_code[x][y], (x_cord, y_cord), 7)
+            x_cord += 30
+            if y % 2 == 1:
+                y_cord += 30
+                x_cord = 330
 
 
 def draw_buttons():
@@ -158,38 +180,48 @@ def show_code():
 def check_guess(guess, cde):
     guess_cpy = guess.copy()
     code_cpy = cde.copy()
-    white_peg = 0
-    black_peg = 0
+    white_correct = 0
+    black_correct = 0
     ''' This for loop is used to make the code_cpy list longer so I 
         stop getting an error on the next for loop on the
          second iteration. '''
-    for y in range(3):
+    for y in range(4):
         code_cpy.append('pink')
 
     for i in range(4):
         for x in range(4):
             if guess_cpy[i] == code_cpy[x]:
-                white_peg += 1
+                white_correct += 1
                 code_cpy.remove(guess_cpy[i])
-    print(white_peg, black_peg)
+    print(white_correct, black_correct)
 
     guess_cpy = guess.copy()
     code_cpy = cde.copy()
 
     for x in range(4):
         if guess_cpy[x] == code_cpy[x]:
-            black_peg += 1
-            white_peg -= 1
+            black_correct += 1
+            white_correct -= 1
 
-    print(guess_cpy, code_cpy, white_peg, black_peg)
+    print(guess_cpy, code_cpy, white_correct, black_correct)
+    return black_correct, white_correct
 
 
 def restart():
-    global guess_code
+    global guess_code, answer_code
+
     set_code()
     guess_code = [['grey' for y in range(4)]  # populates guess code to 40 greys
                   for x in range(10)]
+
+    answer_code = [['dark grey' for y in range(4)]  # populates answer code to 40 greys
+                   for x in range(10)]
+
     return 0
+
+
+def game_over():
+    pass
 
 
 restart()  # sets-up the game for the first run
@@ -234,9 +266,10 @@ while running:
                 # check if check button is pressed
                 if 90 <= x_pos <= 240 and 710 <= y_pos <= 760:
                     player_turn += 1
-                    check_guess(guess_code[player_turn - 1], code)
+                    pegs = check_guess(guess_code[player_turn - 1], code)
                     y_min += 60
                     y_max += 60
+                    print(pegs)
 
                 # check if restart button is pressed
                 if 340 <= x_pos <= 490 and 710 <= y_pos <= 760:
@@ -263,6 +296,5 @@ while running:
     pygame.display.update()
 
 pygame.quit()
-
 
 
